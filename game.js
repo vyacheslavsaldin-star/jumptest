@@ -31,11 +31,11 @@ let scoreText;
 let cameraY = 0;
 
 function preload() {
-    // Загружаем картинки из папки assets (названия файлов подставьте под ваши)
-    this.load.image('hero', 'assets/hero.png');
-    this.load.image('platform', 'assets/platform.png');
-    // Если фона нет, можно закомментировать следующую строку
-    // this.load.image('background', 'assets/background.png');
+    function preload() {
+    // Загружаем картинки с расширением .jpg
+    this.load.image('hero', 'assets/hero.jpg');
+    this.load.image('platform', 'assets/platform.jpg');
+    this.load.image('background', 'assets/background.jpg');
 }
 
 function create() {
