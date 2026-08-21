@@ -31,7 +31,6 @@ let scoreText;
 let cameraY = 0;
 
 function preload() {
-    function preload() {
     // Загружаем картинки с расширением .jpg
     this.load.image('hero', 'assets/hero.jpg');
     this.load.image('platform', 'assets/platform.jpg');
