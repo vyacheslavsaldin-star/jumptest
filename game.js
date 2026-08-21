@@ -40,7 +40,7 @@ let score = 0;
 let scoreText;
 
 function preload() {
-    this.load.image('hero', 'assets/hero.jpg');
+    this.load.image('hero', 'assets/hero.png');
     this.load.image('platform', 'assets/platform.jpg');
 }
 
