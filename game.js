@@ -7,7 +7,7 @@ const config = {
     height: 650,
     parent: document.body,
     scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
     physics: {
@@ -38,47 +38,51 @@ function preload() {
 }
 
 function create() {
-    // Делаем фон игры чисто белым (под цвет ваших картинок)
     this.cameras.main.setBackgroundColor('#ffffff');
 
-    // Группа платформ
     platforms = this.physics.add.group({
         allowGravity: false,
         immovable: true
     });
 
-    // Создаем стартовую платформу
-    let basePlatform = platforms.create(200, 580, 'platform');
-    basePlatform.setScale(0.5);
-    basePlatform.setBlendMode(Phaser.BlendModes.MULTIPLY); // Убирает белый фон у JPG
+    // Функция создания платформы с уменьшенным физическим коллайдером
+    function createPlatform(scene, x, y) {
+        let plat = platforms.create(x, y, 'platform');
+        plat.setScale(0.4);
+        plat.setBlendMode(Phaser.BlendModes.MULTIPLY);
+        // Сужаем хитбокс по вертикали и горизонтали, чтобы не было «отскока от пустоты»
+        plat.body.setSize(plat.width * 0.8, plat.height * 0.3);
+        plat.body.setOffset(plat.width * 0.1, plat.height * 0.3);
+        return plat;
+    }
+
+    // Стартовая платформа
+    createPlatform(this, 200, 580);
 
     // Генерация верхних платформ
     for (let i = 1; i < 7; i++) {
         let x = Phaser.Math.Between(50, 350);
         let y = 580 - (i * 90);
-        let plat = platforms.create(x, y, 'platform');
-        plat.setScale(0.5);
-        plat.setBlendMode(Phaser.BlendModes.MULTIPLY); // Убирает белый фон у платформ
+        createPlatform(this, x, y);
     }
 
     // Игрок
     player = this.physics.add.sprite(200, 400, 'hero');
-    player.setScale(0.25);
-    player.setBlendMode(Phaser.BlendModes.MULTIPLY); // Убирает белый фон у ниндзи
+    player.setScale(0.22);
+    player.setBlendMode(Phaser.BlendModes.MULTIPLY);
     player.setBounce(0);
     player.setVelocityY(-600);
+    // Подгоняем хитбокс ниндзи под его тело
+    player.body.setSize(player.width * 0.6, player.height * 0.8);
 
-    // Камера следит за игроком
     this.cameras.main.startFollow(player, true, 0.05, 0.05);
     this.cameras.main.setFollowOffset(0, 150);
 
-    // Управление
     cursors = this.input.keyboard.createCursorKeys();
     this.input.on('pointermove', (pointer) => {
         player.x = pointer.x;
     });
 
-    // Текст с очками
     scoreText = this.add.text(20, 20, 'Очки: 0', {
         fontSize: '24px',
         fill: '#000000',
@@ -99,8 +103,9 @@ function update() {
         player.x = 0;
     }
 
+    // Проверяем столкновение: персонаж должен падать вниз и касаться верха платформы
     this.physics.add.overlap(player, platforms, (p, plat) => {
-        if (p.body.velocity.y > 0 && p.y < plat.y - 10) {
+        if (p.body.velocity.y > 0 && p.y < plat.y) {
             p.setVelocityY(-650);
             if (tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('light');
