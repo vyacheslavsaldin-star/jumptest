@@ -1,20 +1,27 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
+// Принудительно делаем фон страницы белым, чтобы убрать черные полосы по краям
+document.body.style.backgroundColor = '#ffffff';
+document.body.style.margin = '0';
+document.body.style.overflow = 'hidden';
+
 const config = {
     type: Phaser.AUTO,
     width: 400,
     height: 650,
     parent: document.body,
     scale: {
-        mode: Phaser.Scale.RESIZE,
+        mode: Phaser.Scale.FIT, // Игра будет вписываться в экран
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
     physics: {
         default: 'arcade',
         arcade: {
             gravity: { y: 900 },
-            debug: false
+            // ВКЛЮЧАЕМ РЕЖИМ ОТЛАДКИ (Debug):
+            // Теперь вы увидите невидимые границы столкновений (фиолетовые и зеленые рамки)
+            debug: true 
         }
     },
     scene: {
@@ -45,35 +52,35 @@ function create() {
         immovable: true
     });
 
-    // Функция создания платформы с уменьшенным физическим коллайдером
     function createPlatform(scene, x, y) {
         let plat = platforms.create(x, y, 'platform');
         plat.setScale(0.4);
         plat.setBlendMode(Phaser.BlendModes.MULTIPLY);
-        // Сужаем хитбокс по вертикали и горизонтали, чтобы не было «отскока от пустоты»
-        plat.body.setSize(plat.width * 0.8, plat.height * 0.3);
-        plat.body.setOffset(plat.width * 0.1, plat.height * 0.3);
+        
+        // Настраиваем физическую рамку платформы (хитбокс)
+        // Делаем её меньше самой картинки и сдвигаем в центр
+        plat.body.setSize(plat.width * 0.7, plat.height * 0.2);
+        plat.body.setOffset(plat.width * 0.15, plat.height * 0.1);
         return plat;
     }
 
-    // Стартовая платформа
     createPlatform(this, 200, 580);
 
-    // Генерация верхних платформ
     for (let i = 1; i < 7; i++) {
         let x = Phaser.Math.Between(50, 350);
         let y = 580 - (i * 90);
         createPlatform(this, x, y);
     }
 
-    // Игрок
     player = this.physics.add.sprite(200, 400, 'hero');
     player.setScale(0.22);
     player.setBlendMode(Phaser.BlendModes.MULTIPLY);
     player.setBounce(0);
     player.setVelocityY(-600);
-    // Подгоняем хитбокс ниндзи под его тело
-    player.body.setSize(player.width * 0.6, player.height * 0.8);
+    
+    // Настраиваем физическую рамку ниндзи, чтобы она облегала только его тело, а не "шашечки"
+    player.body.setSize(player.width * 0.5, player.height * 0.6);
+    player.body.setOffset(player.width * 0.25, player.height * 0.2);
 
     this.cameras.main.startFollow(player, true, 0.05, 0.05);
     this.cameras.main.setFollowOffset(0, 150);
@@ -103,9 +110,9 @@ function update() {
         player.x = 0;
     }
 
-    // Проверяем столкновение: персонаж должен падать вниз и касаться верха платформы
     this.physics.add.overlap(player, platforms, (p, plat) => {
-        if (p.body.velocity.y > 0 && p.y < plat.y) {
+        // Проверяем, чтобы нижняя часть игрока была выше платформы
+        if (p.body.velocity.y > 0 && p.body.bottom <= plat.body.y + 15) {
             p.setVelocityY(-650);
             if (tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('light');
