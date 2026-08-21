@@ -74,7 +74,15 @@ function create() {
     this.cameras.main.setFollowOffset(0, 150);
 
     // Управление с клавиатуры (для тестов на ПК)
+    // Управление с клавиатуры (стрелки влево/вправо для ПК)
     cursors = this.input.keyboard.createCursorKeys();
+
+    // Управление мышью и касаниями: ниндзя следует за позицией курсора/пальца по X
+    this.input.on('pointermove', (pointer) => {
+        // pointer.x — это текущая координата курсора по горизонтали
+        // Плавно двигаем персонажа к курсору или фиксируем позицию:
+        player.x = pointer.x;
+    });
 
     // Управление касаниями для телефонов (свайпы / тапы влево-вправо)
     this.input.on('pointermove', (pointer) => {
@@ -100,14 +108,25 @@ function create() {
 }
 
 function update() {
-    // Обработка клавиатуры (стрелки влево/вправо)
+   function update() {
+    // Управление клавиатурой (стрелки)
     if (cursors.left.isDown) {
-        player.setVelocityX(-250);
+        player.setVelocityX(-350);
     } else if (cursors.right.isDown) {
-        player.setVelocityX(250);
-    } else if (!this.input.activePointer.isDown) {
-        player.setVelocityX(0);
+        player.setVelocityX(350);
+    } 
+    // Если на клавиатуре не жмут стрелки, но мышь не двигается активно, 
+    // можно оставить инерцию или дать игроку управлять исключительно мышью.
+
+    // Телепортация через левый/правый край экрана
+    if (player.x < 0) {
+        player.x = 400;
+    } else if (player.x > 400) {
+        player.x = 0;
     }
+    
+    // ... остальные проверки (столкновения, генерация) ...
+}
 
     // Телепортация через левый/правый край экрана (фишка Doodle Jump)
     if (player.x < 0) {
