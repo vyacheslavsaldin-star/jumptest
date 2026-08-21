@@ -1,7 +1,6 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// Принудительно делаем фон страницы белым
 document.body.style.backgroundColor = '#ffffff';
 document.body.style.margin = '0';
 document.body.style.overflow = 'hidden';
@@ -19,8 +18,8 @@ const config = {
         default: 'arcade',
         arcade: {
             gravity: { y: 900 },
-            // Поменяйте на true, если снова захотите увидеть розовые хитбоксы для отладки
-            debug: false 
+            // Оставьте true, пока не добьемся идеального совпадения рамок, потом поменяете на false
+            debug: true 
         }
     },
     scene: {
@@ -56,9 +55,9 @@ function create() {
         plat.setScale(0.35);
         plat.setBlendMode(Phaser.BlendModes.MULTIPLY);
         
-        // Центрируем хитбокс платформы ровно по островку
-        plat.body.setSize(plat.width * 0.5, plat.height * 0.2);
-        plat.body.setOffset(plat.width * 0.25, plat.height * 0.2); 
+        // Смещаем хитбокс влево, чтобы он точно накрывал нарисованный островок
+        plat.body.setSize(plat.width * 0.4, plat.height * 0.25);
+        plat.body.setOffset(plat.width * 0.05, plat.height * 0.15); 
         return plat;
     }
 
@@ -70,16 +69,16 @@ function create() {
         createPlatform(this, x, y);
     }
 
-    // Игрок с нормальным масштабом
+    // Игрок
     player = this.physics.add.sprite(200, 400, 'hero');
-    player.setScale(0.5); 
+    player.setScale(0.4); 
     player.setBlendMode(Phaser.BlendModes.MULTIPLY);
     player.setBounce(0);
     player.setVelocityY(-600);
     
-    // Хитбокс ниндзи под его тело
-    player.body.setSize(player.width * 0.5, player.height * 0.7);
-    player.body.setOffset(player.width * 0.25, player.height * 0.15);
+    // Хитбокс ниндзи под размер его тела
+    player.body.setSize(player.width * 0.6, player.height * 0.7);
+    player.body.setOffset(player.width * 0.2, player.height * 0.15);
 
     this.cameras.main.startFollow(player, true, 0.05, 0.05);
     this.cameras.main.setFollowOffset(0, 150);
@@ -110,7 +109,8 @@ function update() {
     }
 
     this.physics.add.overlap(player, platforms, (p, plat) => {
-        if (p.body.velocity.y > 0 && p.body.bottom <= plat.body.y + 15) {
+        // Проверяем, что ниндзя падает вниз и наступает на верхнюю грань платформы
+        if (p.body.velocity.y > 0 && p.body.bottom <= plat.body.y + 20) {
             p.setVelocityY(-650);
             if (tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('light');
