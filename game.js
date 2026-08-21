@@ -6,6 +6,10 @@ const config = {
     width: 400,
     height: 650,
     parent: document.body,
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH
+    },
     physics: {
         default: 'arcade',
         arcade: {
@@ -29,78 +33,78 @@ let score = 0;
 let scoreText;
 
 function preload() {
-    // Загружаем ваши файлы (фон и платформу пока уберем, оставим только ниндзю)
-    // Пути должны быть точными: 'assets/hero.jpg'
     this.load.image('hero', 'assets/hero.jpg');
-    // Если есть платформа, раскомментируйте:
-    // this.load.image('platform', 'assets/platform.jpg');
+    this.load.image('platform', 'assets/platform.jpg');
 }
 
 function create() {
-    // 1. ЗАЛИВКА ФОНА
-    // Вместо черного делаем светло-серый (как в оригинале Doodle Jump)
-    // Это уберет черноту, и квадрат ниндзи станет почти незаметен.
-    this.cameras.main.setBackgroundColor('#f0f0f0'); // Светло-серый цвет
+    // Делаем фон игры чисто белым (под цвет ваших картинок)
+    this.cameras.main.setBackgroundColor('#ffffff');
 
-    // 2. СОЗДАНИЕ ИГРОКА
-    player = this.physics.add.sprite(200, 400, 'hero');
-    player.setScale(0.3); // Подгоните масштаб, если нужно
-    player.setBounce(0);
-    player.setVelocityY(-600);
-
-    // 3. ПЛАТФОРМЫ (Временные, если нет своей картинки)
+    // Группа платформ
     platforms = this.physics.add.group({
         allowGravity: false,
         immovable: true
     });
-    
-    // Стартовая платформа (коричневый прямоугольник)
-    let graphics = this.make.graphics({ x: 0, y: 0 });
-    graphics.fillStyle(0x8b4513, 1); // Коричневый цвет
-    graphics.fillRect(0, 0, 100, 20);
-    graphics.generateTexture('tempPlatform', 100, 20);
-    graphics.destroy();
 
-    let basePlatform = platforms.create(200, 580, 'tempPlatform');
-    basePlatform.setScale(1.2);
+    // Создаем стартовую платформу
+    let basePlatform = platforms.create(200, 580, 'platform');
+    basePlatform.setScale(0.5);
+    basePlatform.setBlendMode(Phaser.BlendModes.MULTIPLY); // Убирает белый фон у JPG
 
+    // Генерация верхних платформ
     for (let i = 1; i < 7; i++) {
         let x = Phaser.Math.Between(50, 350);
         let y = 580 - (i * 90);
-        let plat = platforms.create(x, y, 'tempPlatform');
-        plat.setScale(1);
+        let plat = platforms.create(x, y, 'platform');
+        plat.setScale(0.5);
+        plat.setBlendMode(Phaser.BlendModes.MULTIPLY); // Убирает белый фон у платформ
     }
 
-    // 4. КАМЕРА И УПРАВЛЕНИЕ
+    // Игрок
+    player = this.physics.add.sprite(200, 400, 'hero');
+    player.setScale(0.25);
+    player.setBlendMode(Phaser.BlendModes.MULTIPLY); // Убирает белый фон у ниндзи
+    player.setBounce(0);
+    player.setVelocityY(-600);
+
+    // Камера следит за игроком
     this.cameras.main.startFollow(player, true, 0.05, 0.05);
     this.cameras.main.setFollowOffset(0, 150);
+
+    // Управление
     cursors = this.input.keyboard.createCursorKeys();
     this.input.on('pointermove', (pointer) => {
         player.x = pointer.x;
     });
 
-    // 5. ТЕКСТ СЧЕТА (меняем цвет на черный, так как фон стал светлым)
+    // Текст с очками
     scoreText = this.add.text(20, 20, 'Очки: 0', {
         fontSize: '24px',
-        fill: '#000000', // Черный текст
-        fontStyle: 'bold',
-        stroke: '#ffffff', // Белая обводка для читаемости
-        strokeThickness: 3
+        fill: '#000000',
+        fontStyle: 'bold'
     }).setScrollFactor(0);
 }
 
 function update() {
-    // Управление и логика остаются без изменений
-    if (cursors.left.isDown) { player.setVelocityX(-350); } 
-    else if (cursors.right.isDown) { player.setVelocityX(350); }
+    if (cursors.left.isDown) {
+        player.setVelocityX(-350);
+    } else if (cursors.right.isDown) {
+        player.setVelocityX(350);
+    }
 
-    if (player.x < 0) { player.x = 400; } 
-    else if (player.x > 400) { player.x = 0; }
+    if (player.x < 0) {
+        player.x = 400;
+    } else if (player.x > 400) {
+        player.x = 0;
+    }
 
     this.physics.add.overlap(player, platforms, (p, plat) => {
         if (p.body.velocity.y > 0 && p.y < plat.y - 10) {
             p.setVelocityY(-650);
-            if (tg.HapticFeedback) { tg.HapticFeedback.impactOccurred('light'); }
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
         }
     });
 
